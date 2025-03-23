@@ -23,9 +23,9 @@ const Contact = () => {
     setIsSubmitting(true);
 
     // Replace with your EmailJS service ID, template ID, and user ID
-    const serviceId = 'service_ff4bg73';
-    const templateId = 'template_73skihy';
-    const userId = 'gIBO5q-2CeexJeZnW';
+    const serviceId = 'service_z9gxrgb';
+    const templateId = 'template_p5s27qq';
+    const userId = '4DDf4SfBvIbbVjB_Y';
 
     // Send form data to EmailJS
     emailjs.send(serviceId, templateId, formData, userId)
