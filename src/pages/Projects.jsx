@@ -48,8 +48,8 @@ const Projects = () => {
       description: "The Resume Portfolio Web Application is a modern, dynamic platform designed to showcase my professional profile, skills, and projects in a sleek and interactive manner.",
       technologies: ["React.js", "Three.js for 3D graphics","Tailwind CSS", "EmailJs", "Netlify"],
       image: pwImage,
-      link: "https://github.com/hashkhan0/Hashir-s-Portfolio_Web",
-      demo: "https://hashirsportfolio.netlify.app"
+      link: "https://github.com/umairsattar142/Umair-s-Portfolio-Web",
+      demo: "https://umairs-portfolio-web.netlify.app/"
     },
     {
       id: 5,
