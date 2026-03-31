@@ -1,5 +1,30 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
+
+const ExperienceCard = ({ title, company, period, highlights, extra, last }) => {
+  const [expanded, setExpanded] = useState(false);
+  return (
+    <div className={`${!last ? 'mb-4 pb-4 border-b border-gray-700' : ''}`}>
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-1">
+        <h3 className="text-base font-medium text-blue-400">{title}</h3>
+        <span className="text-gray-400 text-xs">{period}</span>
+      </div>
+      <p className="text-gray-300 text-sm mb-2">{company}</p>
+      <ul className="list-disc pl-5 space-y-1 text-gray-300 text-xs sm:text-sm">
+        {highlights.map((h, i) => <li key={i}>{h}</li>)}
+        {expanded && extra && extra.map((h, i) => <li key={`e${i}`}>{h}</li>)}
+      </ul>
+      {extra && extra.length > 0 && (
+        <button
+          onClick={() => setExpanded(!expanded)}
+          className="mt-2 text-blue-400 hover:text-blue-300 text-xs font-medium transition-colors"
+        >
+          {expanded ? 'Show less' : `+ ${extra.length} more`}
+        </button>
+      )}
+    </div>
+  );
+};
 
 const About = () => {
   const canvasRef = useRef(null);
@@ -84,102 +109,120 @@ const About = () => {
       <div ref={canvasRef} className="absolute inset-0 z-0" />
 
       {/* Content overlay */}
-      <div className="relative z-10 container mx-auto px-4 py-12 sm:py-24">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 text-center text-white">About Me</h1>
+      <div className="relative z-10 container mx-auto px-4 py-12 sm:py-20">
+        <div className="max-w-5xl mx-auto">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-5 text-center bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">About Me</h1>
 
-          <div className="bg-white bg-opacity-10 rounded-lg shadow-xl p-6 md:p-8 mb-8 border border-gray-700">
-            <h2 className="text-2xl md:text-3xl font-semibold mb-6 text-white">Intro</h2>
-            <p className="text-base sm:text-lg mb-6 text-white">
-              I'm Umair Sattar, a passionate software engineer with strong problem-solving and analytical reasoning skills.
-              Actively pursuing a career in Full Stack development, with hands-on experience in MERN projects.
-              Continuously enhancing problem-solving abilities through consistent practice on competitive programming platforms like
-              LeetCode. Eager to contribute innovative and optimized solutions and want to grow in the rapidly evolving development
-              industry under a great mentorship.
-            </p>
-            <p className="text-base sm:text-lg text-gray-300 text-white">
-              I'm driven by the constant evolution of technology and enjoy solving complex problems with elegant solutions.
+          {/* Summary - compact */}
+          <div className="bg-white bg-opacity-10 rounded-lg shadow-xl p-5 md:p-6 mb-6 border border-gray-700">
+            <p className="text-sm sm:text-base text-gray-200">
+              Full Stack Engineer with 2 years of experience specializing in end-to-end application development, deployment, and complex problem-solving. Proven ability to architect scalable solutions, optimize system performance, and rapidly adapt to emerging technologies.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
-            <div className="bg-white bg-opacity-10 rounded-lg shadow-xl p-6 md:p-8 border border-gray-700">
-              <h2 className="text-2xl font-semibold mb-6 text-white">Education</h2>
-              <div className="space-y-6">
+          {/* Experience - collapsible cards */}
+          <div className="bg-white bg-opacity-10 rounded-lg shadow-xl p-5 md:p-6 mb-6 border border-gray-700">
+            <h2 className="text-xl md:text-2xl font-semibold mb-4 text-white">Experience</h2>
+            <ExperienceCard
+              title="Software Engineer"
+              company="VaporVM – Lahore, Pakistan"
+              period="Jan 2025 – Present"
+              highlights={[
+                "Architected and delivered an enterprise IT Asset Management (ITAM) system using .NET Core, React.js, PostgreSQL, and MongoDB.",
+                "Designed and optimized RESTful APIs, enabling export of 2,000+ assets per operation and improving response times by 40%.",
+                "Implemented RBAC with claims-based authorization for module- and tenant-level permissions.",
+              ]}
+              extra={[
+                "Built an expiry-notification service with Hangfire for scheduled and recurring reminders.",
+                "Enhanced bulk asset upload with row-level validation, reducing upload failures by 70%.",
+                "Integrated AWS S3 for tenant-specific logo/file management.",
+                "Improved application performance by 30% through front-end and back-end optimization.",
+                "Ensured quality with unit, integration, and performance testing; collaborated in Agile sprints.",
+              ]}
+            />
+            <ExperienceCard
+              title="Associate Software Engineer"
+              company="VentureDive – Lahore, Pakistan"
+              period="Jun 2024 – Jan 2025"
+              highlights={[
+                "Developed backend APIs using ASP.NET Core and EF Core, following Clean Architecture and SOLID principles.",
+                "Built responsive frontend components using React.js and Next.js, integrating with RESTful APIs.",
+                "Designed backend services using Python (FastAPI) with database schema design and query optimization.",
+              ]}
+              extra={[
+                "Worked with SQL Server and PostgreSQL for designing schemas and managing migrations.",
+                "Created RESTful APIs with Node.js and Express with a focus on data security.",
+                "Implemented state management using Redux and developed reusable, modular frontend code.",
+                "Conducted unit and integration testing; collaborated in Agile sprints and code reviews.",
+              ]}
+            />
+            <ExperienceCard
+              title="Full Stack Developer Intern"
+              company="INTERNNCRAFT – Lahore, Pakistan"
+              period="Feb 2024 – April 2024"
+              highlights={[
+                "Gained hands-on experience in full-stack development using .NET Core, React.js, and MongoDB.",
+                "Completed two comprehensive web projects, applying clean architecture and responsive UI principles.",
+                "Integrated and optimized API endpoints, reducing latency and improving performance.",
+              ]}
+              last
+            />
+          </div>
+
+          {/* Skills + Education + Certs in a grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            {/* Skills */}
+            <div className="md:col-span-2 bg-white bg-opacity-10 rounded-lg shadow-xl p-5 md:p-6 border border-gray-700">
+              <h2 className="text-xl font-semibold mb-3 text-white">Skills</h2>
+              <div className="space-y-3">
                 <div>
-                  <h3 className="text-xl font-medium text-blue-400">Bachelor of Science in Computer Science</h3>
-                  <p className="text-gray-300 text-white">FAST-NUCES</p>
-                  <p className="text-gray-400 text-white">Graduated: Dec-2024</p>
-                  <p className="mt-2 text-gray-300 text-white">
-                    Relevant Coursework: <br />Data Structures, Design & analysis of Algorithms, Blockchain Development, Natural Language Processing, Database Systems, Secure Software Design, Object Oriented programming.
-                     
-                  </p>
+                  <h3 className="text-sm font-medium text-blue-400 mb-1">Languages</h3>
+                  <div className="flex flex-wrap gap-1.5">
+                    {["C#", "JavaScript", "Python"].map(s => <span key={s} className="px-2.5 py-0.5 text-sm bg-gray-700 rounded-full border border-gray-600">{s}</span>)}
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium text-blue-400 mb-1">Technologies</h3>
+                  <div className="flex flex-wrap gap-1.5">
+                    {["ASP.NET Core", "EF Core", "React.js", "Angular", "MediatR", "LINQ", "Node.js"].map(s => <span key={s} className="px-2.5 py-0.5 text-sm bg-gray-700 rounded-full border border-gray-600">{s}</span>)}
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium text-blue-400 mb-1">Databases</h3>
+                  <div className="flex flex-wrap gap-1.5">
+                    {["PostgreSQL", "MongoDB", "MySQL"].map(s => <span key={s} className="px-2.5 py-0.5 text-sm bg-gray-700 rounded-full border border-gray-600">{s}</span>)}
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium text-blue-400 mb-1">Soft Skills</h3>
+                  <div className="flex flex-wrap gap-1.5">
+                    {["Collaboration", "Leadership", "Communication", "Problem Solving", "Adaptability"].map(s => <span key={s} className="px-2.5 py-0.5 text-sm bg-gray-700 rounded-full border border-gray-600">{s}</span>)}
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white bg-opacity-10 rounded-lg shadow-xl p-6 md:p-8 border border-gray-700">
-              <h2 className="text-2xl font-semibold mb-6 text-white">Skills</h2>
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-lg font-medium text-blue-400 mb-2">Programming Languages</h3>
-                  <div className="flex flex-wrap gap-2">
-                    <span className="px-3 py-1 bg-gray-700 rounded-full border border-gray-600">C</span>
-                    <span className="px-3 py-1 bg-gray-700 rounded-full border border-gray-600">C++</span>
-                    <span className="px-3 py-1 bg-gray-700 rounded-full border border-gray-600">SQL</span>
-                    <span className="px-3 py-1 bg-gray-700 rounded-full border border-gray-600">JavaScript</span>
-                    <span className="px-3 py-1 bg-gray-700 rounded-full border border-gray-600">HTML</span>
-                    <span className="px-3 py-1 bg-gray-700 rounded-full border border-gray-600">CSS</span>
-                    <span className="px-3 py-1 bg-gray-700 rounded-full border border-gray-600">C#</span>
-                    <span className="px-3 py-1 bg-gray-700 rounded-full border border-gray-600">Python</span>
-                  </div>
-                </div>
-                <div>
-                  <h3 className="text-lg font-medium text-blue-400 mb-2">Frameworks & Libraries</h3>
-                  <div className="flex flex-wrap gap-2">
-                    <span className="px-3 py-1 bg-gray-700 rounded-full border border-gray-600">Tailwind CSS</span>
-                    <span className="px-3 py-1 bg-gray-700 rounded-full border border-gray-600">Ether.js</span>
-                    <span className="px-3 py-1 bg-gray-700 rounded-full border border-gray-600">Web3.js</span>
-                    <span className="px-3 py-1 bg-gray-700 rounded-full border border-gray-600">ReactJS</span>
-                    <span className="px-3 py-1 bg-gray-700 rounded-full border border-gray-600">EmailJs</span>
-                  </div>
-                </div>
-                <div>
-                  <h3 className="text-lg font-medium text-blue-400 mb-2">Tools & Technologies</h3>
-                  <div className="flex flex-wrap gap-2">
-                    <span className="px-3 py-1 bg-gray-700 rounded-full border border-gray-600">Git</span>
-                    <span className="px-3 py-1 bg-gray-700 rounded-full border border-gray-600">Remix</span>
-                    <span className="px-3 py-1 bg-gray-700 rounded-full border border-gray-600">Express</span>
-                   <span className="px-3 py-1 bg-gray-700 rounded-full border border-gray-600">Vscode</span>
-                   <span className="px-3 py-1 bg-gray-700 rounded-full border border-gray-600">NodeJs</span>
-                  {/*  <span className="px-3 py-1 bg-gray-700 rounded-full border border-gray-600">Vscode</span>*/}
-                  </div>
-                </div>
-                <div>
-                  <h3 className="text-lg font-medium text-blue-400 mb-2">Database</h3>
-                  <div className="flex flex-wrap gap-2">
-                  
-                    <span className="px-3 py-1 bg-gray-700 rounded-full border border-gray-600">PostgreSQL</span>
-                    <span className="px-3 py-1 bg-gray-700 rounded-full border border-gray-600">MongoDB</span>
-                    <span className="px-3 py-1 bg-gray-700 rounded-full border border-gray-600">Firebase</span>
-                    <span className="px-3 py-1 bg-gray-700 rounded-full border border-gray-600">EmailJs</span>
-                  </div>
-                </div>
+            {/* Education + Certifications + Languages stacked */}
+            <div className="space-y-4">
+              <div className="bg-white bg-opacity-10 rounded-lg shadow-xl p-5 md:p-6 border border-gray-700">
+                <h2 className="text-xl font-semibold mb-2 text-white">Education</h2>
+                <h3 className="text-base font-medium text-blue-400">BS in Computer Science</h3>
+                <p className="text-gray-300 text-sm">FAST NUCES</p>
+                <p className="text-gray-400 text-sm">Aug 2020 – Dec 2024</p>
+              </div>
+              <div className="bg-white bg-opacity-10 rounded-lg shadow-xl p-5 md:p-6 border border-gray-700">
+                <h2 className="text-xl font-semibold mb-2 text-white">Certifications</h2>
+                <ul className="list-disc pl-5 space-y-1 text-sm text-gray-300">
+                  <li>CSS, JavaScript & Python Complete Course (Udemy)</li>
+                  <li>Git: Become an Expert in Git & GitHub (Udemy)</li>
+                </ul>
+              </div>
+              <div className="bg-white bg-opacity-10 rounded-lg shadow-xl p-5 md:p-6 border border-gray-700">
+                <h2 className="text-xl font-semibold mb-2 text-white">Languages</h2>
+                <p className="text-sm text-gray-300"><span className="text-white font-medium">English:</span> Proficient</p>
+                <p className="text-sm text-gray-300"><span className="text-white font-medium">Urdu:</span> Native Speaker</p>
               </div>
             </div>
-          </div>
-
-          <div className="bg-white bg-opacity-10 rounded-lg shadow-xl p-6 md:p-8 mt-8 border border-gray-700">
-            <h2 className="text-2xl font-semibold mb-6 text-white">Interests</h2>
-            <p className="text-base sm:text-lg mb-4 text-gray-300 text-white">
-              Outside of coding, I'm passionate about:
-            </p>
-            <ul className="list-disc pl-6 space-y-2 text-base sm:text-lg text-gray-300 text-white">
-              <li>Solving puzzles and brain teasers</li>
-              <li>Playing chess or strategic board games</li>
-              <li>Crypto trading</li>
-              <li>Fitness (e.g., gym, running)</li>
-            </ul>
           </div>
         </div>
       </div>
