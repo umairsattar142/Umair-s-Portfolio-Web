@@ -2,14 +2,15 @@ import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { motion } from "framer-motion";
 import Magnetic from "./Magnetic";
+import SocialIcon from "./SocialIcon";
 import useReducedMotion from "../lib/useReducedMotion";
 
 const ROLES = ["Software Engineer", "Full-Stack Developer", ".NET Core Specialist", "Multi-Tenant SaaS Architect"];
 
 const SOCIALS = [
-  { label: "GitHub", href: "https://github.com/umairsattar142", short: "GH" },
-  { label: "LinkedIn", href: "https://www.linkedin.com/in/umair-sattar-90917623b", short: "IN" },
-  { label: "Email", href: "mailto:usattar307@gmail.com", short: "@" },
+  { label: "GitHub", href: "https://github.com/umairsattar142", icon: "github" },
+  { label: "LinkedIn", href: "https://www.linkedin.com/in/umair-sattar-90917623b", icon: "linkedin" },
+  { label: "Email", href: "mailto:usattar307@gmail.com", icon: "email" },
 ];
 
 const reveal = (index, reduced) =>
@@ -331,7 +332,7 @@ const Hero = () => {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={s.label}
-                className="font-mono animate-floaty"
+                className="animate-floaty hover:text-accent-cyan hover:border-[rgba(56,225,255,0.6)] hover:shadow-[0_0_22px_rgba(56,225,255,0.3)] hover:-translate-y-1"
                 style={{
                   animationDuration: "4s",
                   width: 46,
@@ -342,15 +343,13 @@ const Hero = () => {
                   justifyContent: "center",
                   textDecoration: "none",
                   color: "#c4ccdb",
-                  fontSize: 13,
-                  fontWeight: 500,
                   border: "1px solid rgba(255,255,255,0.12)",
                   background: "rgba(255,255,255,0.03)",
                   backdropFilter: "blur(8px)",
                   transition: "all .3s",
                 }}
               >
-                {s.short}
+                <SocialIcon name={s.icon} />
               </a>
             </Magnetic>
           ))}
