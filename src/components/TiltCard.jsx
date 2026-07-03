@@ -38,6 +38,8 @@ const TiltCard = ({ children, className = "", style = {}, glowColor = "rgba(56,2
       className={className}
       style={{
         position: "relative",
+        height: "100%",
+        boxSizing: "border-box",
         transformStyle: "preserve-3d",
         willChange: "transform",
         transition: "transform .3s",
