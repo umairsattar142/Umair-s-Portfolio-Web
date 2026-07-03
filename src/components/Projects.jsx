@@ -18,7 +18,7 @@ const PROJECTS = [
   },
   {
     name: "VHAWK — Vulnerability Platform",
-    tag: "Security ·",
+    tag: "Security · Vulnerability assessment tool",
     desc: "A vulnerability assessment tool with filterable dashboards across severity, CVE, status and affected assets — built on modular Clean Architecture with CQRS (MediatR) and polyglot persistence, with AWS S3, Dyte and Claude AI integrations.",
     stack: [".NET Core", "EF Core", "MediatR", "MongoDB", "PostgreSQL", "Hangfire", "AWS S3", "Docker"],
     cta: "Learn more",
