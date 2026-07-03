@@ -87,7 +87,12 @@ const Hero = () => {
         opacity: 0.28,
       });
       const mesh = new THREE.Mesh(g, m);
-      mesh.position.set((i - 1) * 3.4, Math.sin(i) * 1.4, i * 0.4 - 0.5);
+      // Visible area at z≈0 with fov 60 and camera.z 9: half-height ≈ 5.2.
+      const spawnH = 4.6;
+      const spawnW = spawnH * (w / h);
+      mesh.position.set((Math.random() - 0.5) * 2 * spawnW * 0.8, (Math.random() - 0.5) * 2 * spawnH * 0.8, (i - 1) * 0.6);
+      mesh.userData.vel = new THREE.Vector3((Math.random() - 0.5) * 0.024, (Math.random() - 0.5) * 0.024, 0);
+      mesh.userData.impulse = new THREE.Vector3();
       scene.add(mesh);
       shapes.push(mesh);
     }
@@ -110,11 +115,33 @@ const Hero = () => {
     const ANGULAR_RADIUS = 0.24;
     const PUSH_PER_DEPTH = 1.1;
 
+    const shapeOffset = new THREE.Vector3();
     const onClick = (e) => {
       const rect = canvas.getBoundingClientRect();
+      // Listener lives on window so clicks over the hero text also work —
+      // but ignore clicks outside the hero section itself.
+      if (e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom) return;
       ndc.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
       ndc.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
       raycaster.setFromCamera(ndc, camera);
+
+      // Shove the big wireframe shapes away from the click ray too.
+      for (let i = 0; i < shapes.length; i++) {
+        const s = shapes[i];
+        shapeOffset.copy(s.position).sub(raycaster.ray.origin);
+        const along = shapeOffset.dot(raycaster.ray.direction);
+        if (along <= 0) continue;
+        shapeOffset.addScaledVector(raycaster.ray.direction, -along); // perpendicular part
+        const dist = shapeOffset.length();
+        const angular = dist / Math.max(along, 0.5);
+        if (angular < ANGULAR_RADIUS * 2.2) {
+          if (dist < 0.0001) shapeOffset.set(Math.random() - 0.5, Math.random() - 0.5, 0);
+          shapeOffset.normalize();
+          shapeOffset.z *= 0.2; // keep them from flying into the camera
+          const strength = (1 - angular / (ANGULAR_RADIUS * 2.2)) * 0.22 * Math.min(along, 14) * 0.35;
+          s.userData.impulse.addScaledVector(shapeOffset, Math.max(strength, 0.12));
+        }
+      }
 
       // Work in the points object's local space (it rotates over time).
       invMatrix.copy(points.matrixWorld).invert();
@@ -158,7 +185,7 @@ const Hero = () => {
         }
       }
     };
-    canvas.addEventListener("click", onClick);
+    window.addEventListener("click", onClick);
 
     let scrollY = 0;
     const onScroll = () => {
@@ -173,11 +200,26 @@ const Hero = () => {
       const t = clock.getElapsedTime();
       points.rotation.y = t * 0.045;
       points.rotation.x = Math.sin(t * 0.12) * 0.12;
+      const boundH = 4.8;
+      const boundW = boundH * camera.aspect;
       for (let i = 0; i < shapes.length; i++) {
         const s = shapes[i];
         s.rotation.x = t * (0.2 + i * 0.1);
         s.rotation.y = t * (0.16 + i * 0.07);
-        s.position.y = Math.sin(t * 0.55 + i) * 1.25;
+        s.position.add(s.userData.vel);
+        s.position.addScaledVector(s.userData.impulse, 1);
+        s.userData.impulse.multiplyScalar(0.94);
+        // Bounce off the edges of the visible area so they roam the whole screen.
+        if (s.position.x > boundW || s.position.x < -boundW) {
+          s.userData.vel.x *= -1;
+          s.userData.impulse.x *= -0.5;
+          s.position.x = THREE.MathUtils.clamp(s.position.x, -boundW, boundW);
+        }
+        if (s.position.y > boundH || s.position.y < -boundH) {
+          s.userData.vel.y *= -1;
+          s.userData.impulse.y *= -0.5;
+          s.position.y = THREE.MathUtils.clamp(s.position.y, -boundH, boundH);
+        }
       }
       camera.position.x += (mouse.x * 2.4 - camera.position.x) * 0.045;
       camera.position.y += (-mouse.y * 1.8 - camera.position.y) * 0.045;
@@ -214,7 +256,7 @@ const Hero = () => {
       window.removeEventListener("mousemove", onMouseMove);
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onResize);
-      canvas.removeEventListener("click", onClick);
+      window.removeEventListener("click", onClick);
       geo.dispose();
       mat.dispose();
       shapes.forEach((s) => {
