@@ -1,24 +1,14 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Navbar from './components/Navbar';
-import Home from './pages/Home';
-import About from './pages/About';
-import Projects from './pages/Projects';
-import Contact from './pages/Contact';
+import Portfolio from './pages/Portfolio';
 import ResumePDF from './components/ResumePDF';
 
 function App() {
   return (
     <Router>
-      <Navbar />
-      <div className="pt-14">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/projects" element={<Projects />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/resume" element={<ResumePDF />} />
-        </Routes>
-      </div>
+      <Routes>
+        <Route path="/" element={<Portfolio />} />
+        <Route path="/resume" element={<ResumePDF />} />
+      </Routes>
     </Router>
   );
 }
