@@ -46,7 +46,7 @@ const Hero = () => {
 
     const N = reduced ? 1400 : 4400;
     const geo = new THREE.BufferGeometry();
-    const pos = new Float32Array(N * 3);
+    const basePos = new Float32Array(N * 3);
     const col = new Float32Array(N * 3);
     const c1 = new THREE.Color(0x38e1ff);
     const c2 = new THREE.Color(0xa78bfa);
@@ -54,14 +54,16 @@ const Hero = () => {
       const r = 3 + Math.pow(Math.random(), 0.6) * 6.5;
       const theta = Math.random() * Math.PI * 2;
       const phi = Math.acos(2 * Math.random() - 1);
-      pos[i * 3] = r * Math.sin(phi) * Math.cos(theta);
-      pos[i * 3 + 1] = r * Math.cos(phi) * 0.62;
-      pos[i * 3 + 2] = r * Math.sin(phi) * Math.sin(theta);
+      basePos[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+      basePos[i * 3 + 1] = r * Math.cos(phi) * 0.62;
+      basePos[i * 3 + 2] = r * Math.sin(phi) * Math.sin(theta);
       const c = c1.clone().lerp(c2, Math.random());
       col[i * 3] = c.r;
       col[i * 3 + 1] = c.g;
       col[i * 3 + 2] = c.b;
     }
+    const pos = new Float32Array(basePos);
+    const displacement = new Float32Array(N * 3);
     geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
     geo.setAttribute("color", new THREE.BufferAttribute(col, 3));
     const mat = new THREE.PointsMaterial({
@@ -97,6 +99,67 @@ const Hero = () => {
     };
     window.addEventListener("mousemove", onMouseMove);
 
+    const raycaster = new THREE.Raycaster();
+    const ndc = new THREE.Vector2();
+    const invMatrix = new THREE.Matrix4();
+    const localOrigin = new THREE.Vector3();
+    const localDir = new THREE.Vector3();
+    // Angular radius (radians) around the click ray — using the on-screen angle
+    // instead of world distance keeps the cleared hole the same visual size at
+    // every depth, so far particles can't peek through the middle of it.
+    const ANGULAR_RADIUS = 0.24;
+    const PUSH_PER_DEPTH = 1.1;
+
+    const onClick = (e) => {
+      const rect = canvas.getBoundingClientRect();
+      ndc.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      ndc.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+      raycaster.setFromCamera(ndc, camera);
+
+      // Work in the points object's local space (it rotates over time).
+      invMatrix.copy(points.matrixWorld).invert();
+      localOrigin.copy(raycaster.ray.origin).applyMatrix4(invMatrix);
+      localDir.copy(raycaster.ray.direction).transformDirection(invMatrix).normalize();
+
+      // Push every particle whose distance from the click ray is small —
+      // clears a visible tunnel through the whole cloud, not just one point.
+      for (let i = 0; i < N; i++) {
+        const px = basePos[i * 3] + displacement[i * 3];
+        const py = basePos[i * 3 + 1] + displacement[i * 3 + 1];
+        const pz = basePos[i * 3 + 2] + displacement[i * 3 + 2];
+        const vx = px - localOrigin.x;
+        const vy = py - localOrigin.y;
+        const vz = pz - localOrigin.z;
+        const t = vx * localDir.x + vy * localDir.y + vz * localDir.z;
+        if (t < 0) continue;
+        const cx = localOrigin.x + localDir.x * t;
+        const cy = localOrigin.y + localDir.y * t;
+        const cz = localOrigin.z + localDir.z * t;
+        let dx = px - cx;
+        let dy = py - cy;
+        let dz = pz - cz;
+        let dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+        if (dist < 0.0001) {
+          // Particle exactly on the ray — pick a random sideways direction.
+          dx = Math.random() - 0.5;
+          dy = Math.random() - 0.5;
+          dz = Math.random() - 0.5;
+          dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+        }
+        const angular = dist / Math.max(t, 0.5);
+        if (angular < ANGULAR_RADIUS) {
+          const falloff = 1 - angular / ANGULAR_RADIUS;
+          // Far particles need a bigger world-space shove to leave the same
+          // on-screen hole, so the push scales with depth along the ray.
+          const push = (falloff * falloff + 0.25) * PUSH_PER_DEPTH * Math.min(t, 16) * ANGULAR_RADIUS * 2;
+          displacement[i * 3] += (dx / dist) * push;
+          displacement[i * 3 + 1] += (dy / dist) * push;
+          displacement[i * 3 + 2] += (dz / dist) * push;
+        }
+      }
+    };
+    canvas.addEventListener("click", onClick);
+
     let scrollY = 0;
     const onScroll = () => {
       scrollY = window.scrollY || document.documentElement.scrollTop || 0;
@@ -120,6 +183,18 @@ const Hero = () => {
       camera.position.y += (-mouse.y * 1.8 - camera.position.y) * 0.045;
       camera.position.z = 9 + Math.min(scrollY, 900) * 0.0045;
       camera.lookAt(0, 0, 0);
+
+      let displaced = false;
+      for (let i = 0; i < displacement.length; i++) {
+        if (displacement[i] !== 0) {
+          displaced = true;
+          displacement[i] *= 0.965;
+          if (Math.abs(displacement[i]) < 0.0005) displacement[i] = 0;
+        }
+        pos[i] = basePos[i] + displacement[i];
+      }
+      if (displaced) geo.attributes.position.needsUpdate = true;
+
       renderer.render(scene, camera);
     };
     animate();
@@ -139,6 +214,7 @@ const Hero = () => {
       window.removeEventListener("mousemove", onMouseMove);
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onResize);
+      canvas.removeEventListener("click", onClick);
       geo.dispose();
       mat.dispose();
       shapes.forEach((s) => {
